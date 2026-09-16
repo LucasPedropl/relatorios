@@ -29,30 +29,47 @@ O deploy é do `dist` já buildado (o app é workspace do monorepo; deixar a Ver
 instalar as dependências quebraria). `public/vercel.json` carrega o rewrite de
 SPA e o `noindex`, e o Vite o copia para `dist` a cada build.
 
+Rode **da raiz do app** (`apps/relatorios`), não de dentro do `dist`:
+
 ```bash
-npm run build --workspace apps/relatorios
-cd apps/relatorios/dist
+cd apps/relatorios
 npx vercel deploy --prod --yes --token=<VERCEL_TOKEN>
 ```
 
-> **Confira o vínculo do projeto antes de rodar.** Sem um `.vercel/project.json`
-> apontando para o projeto certo, o CLI **cria um projeto novo** com o nome da
-> pasta em vez de atualizar o existente — o deploy passa, mas
-> `relatorios-uaipdv.vercel.app` continua na versão velha e você não percebe.
-> Aconteceu em 16/09/2026. O vínculo correto é:
+A Vercel builda sozinha a partir do `vercel.json` da raiz do app, que define
+`outputDirectory: dist`, o rewrite de SPA e o `noindex`.
+
+> **Duas armadilhas, as duas já custaram um deploy quebrado em 16/09/2026.**
 >
-> ```json
-> { "projectId": "prj_vLjq5hg1F0ZbGN5qyobgpdZxsxFJ",
->   "orgId": "team_9CDrQAAzMTuoV8tBmldkHamc",
->   "projectName": "relatorios-uaipdv" }
-> ```
+> 1. **O CLI resolve a raiz do projeto subindo até achar o `package.json`.**
+>    Rodar de dentro do `dist` não faz o `dist` virar a raiz: ele sobe para
+>    `apps/relatorios` mesmo assim. Se não houver `.vercel/project.json` **ali**,
+>    o CLI **cria um projeto novo** com o nome da pasta, o deploy responde
+>    "ready" e `relatorios-uaipdv.vercel.app` continua na versão velha. O
+>    vínculo correto é:
 >
-> Depois do deploy, confirme que o que subiu é o que você buildou — o alias
-> responder 200 não prova nada:
+>    ```json
+>    { "projectId": "prj_vLjq5hg1F0ZbGN5qyobgpdZxsxFJ",
+>      "orgId": "team_9CDrQAAzMTuoV8tBmldkHamc",
+>      "projectName": "relatorios-uaipdv" }
+>    ```
+>
+> 2. **O `vercel.json` precisa estar na raiz do deploy.** O que existe em
+>    `public/vercel.json` é copiado para o `dist` como arquivo estático e a
+>    Vercel **não** o lê como configuração. Sem o `vercel.json` da raiz do app,
+>    o rewrite de SPA não vale e todo link `/r/<slug>` — exatamente o que se
+>    manda para o time de backend — responde **404**, enquanto a home responde
+>    200 normalmente.
+>
+> **Sempre valide pelo link profundo, nunca pela home:**
 >
 > ```bash
-> curl -s https://relatorios-uaipdv.vercel.app | grep -oE 'assets/index-[^"]+'
+> curl -sI https://relatorios-uaipdv.vercel.app/r/<algum-slug-existente> \
+>   | grep -iE 'HTTP|x-robots-tag'
 > ```
+>
+> Espere `200` e o header `X-Robots-Tag` — a ausência dele denuncia que o
+> `vercel.json` não foi aplicado.
 
 O token está no `env` do agent-os em `~/.cursor/mcp.json`. O projeto na Vercel é
 `lucaspedropls-projects/relatorios-uaipdv`. Use sempre o domínio curto
