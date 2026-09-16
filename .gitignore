@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vercel/
+
+# Guarda a anon key do Supabase do agent-os — nunca versionar.
+# O modelo sem segredo está em .env.example.
+.env
+.env.local
+.env.*.local
+
+*.log
+npm-debug.log*
+.DS_Store

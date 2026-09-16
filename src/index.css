@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+:root {
+  --paper: #f2eee4;
+  --sheet: #faf7f0;
+  --ink: #1a1814;
+  --muted: #6d675e;
+  --line: #d8d0c2;
+  --sheet-hover: #ece6d8;
+  --overlay: rgb(26 24 20 / 0.5);
+}
+
+.dark {
+  --paper: #080808;
+  --sheet: #121212;
+  --ink: #ece8e0;
+  --muted: #9c9890;
+  --line: #2a2a2a;
+  --sheet-hover: #1c1c1c;
+  --overlay: rgb(0 0 0 / 0.72);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-sheet-hover: var(--sheet-hover);
+  --color-overlay: var(--overlay);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.55;
+    background-color: var(--paper);
+    color: var(--ink);
+    background-image:
+      radial-gradient(ellipse at 12% -10%, color-mix(in srgb, var(--ink) 6%, transparent), transparent 42%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--ink) 8%, transparent), transparent 36%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .markdown pre,
+  .markdown .table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted) transparent;
+  }
+}
