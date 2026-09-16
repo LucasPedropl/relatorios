@@ -17,7 +17,9 @@ export function buildProjectCardModels(
     let openTaskCount = 0;
 
     for (const report of owned) {
-      openTaskCount += report.taskCounts.open + report.taskCounts.in_progress;
+      if (report.status !== 'archived') {
+        openTaskCount += report.taskCounts.open + report.taskCounts.in_progress;
+      }
       if (!lastUpdatedAt || Date.parse(report.updated_at) > Date.parse(lastUpdatedAt)) {
         lastUpdatedAt = report.updated_at;
       }

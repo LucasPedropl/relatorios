@@ -10,6 +10,7 @@ import {
   type TaskStatus,
 } from '@/lib/types';
 import { useReportDetail } from '@/features/reports/hooks';
+import { shouldSuggestArchive } from '@/features/reports/archivedVisibility';
 import { useAuthor } from '@/components/AuthorGate';
 import {
   ErrorPanel,
@@ -155,9 +156,8 @@ export function ReportPage() {
 
   const finishedCount = taskCounts.done + taskCounts.wontfix;
 
-  const handleStatusChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const next = event.target.value;
-    if (!detail || !isReportStatus(next) || next === detail.report.status) return;
+  const persistReportStatus = async (next: ReportStatus) => {
+    if (!detail || next === detail.report.status) return;
 
     setIsSavingStatus(true);
     setStatusError(null);
@@ -169,6 +169,18 @@ export function ReportPage() {
     } finally {
       setIsSavingStatus(false);
     }
+  };
+
+  const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const next = event.target.value;
+    if (!isReportStatus(next)) return;
+    void persistReportStatus(next);
+  };
+
+  const handleArchiveToggle = () => {
+    if (!detail) return;
+    const next: ReportStatus = detail.report.status === 'archived' ? 'open' : 'archived';
+    void persistReportStatus(next);
   };
 
   if (notFound) return <NotFound />;
@@ -218,24 +230,42 @@ export function ReportPage() {
             <TimeAgo iso={report.updated_at} prefix="atualizado " />
           </p>
 
-          <label className="flex items-center gap-2 text-xs text-muted">
-            <span className="shrink-0">Status do relatório</span>
-            <select
-              value={report.status}
-              onChange={(event) => void handleStatusChange(event)}
-              disabled={isSavingStatus}
-              className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm text-ink outline-none focus:ring-2 focus:ring-ink/40 disabled:opacity-60 sm:flex-none"
-            >
-              {REPORT_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {REPORT_STATUS_LABEL[status]}
-                </option>
-              ))}
-            </select>
-            {isSavingStatus && (
-              <LoaderCircle className="size-4 animate-spin text-muted" aria-hidden="true" />
+          <div className="flex flex-col items-stretch gap-1.5 sm:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted sm:flex-none">
+                <span className="shrink-0">Status do relatório</span>
+                <select
+                  value={report.status}
+                  onChange={handleStatusChange}
+                  disabled={isSavingStatus}
+                  className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm text-ink outline-none focus:ring-2 focus:ring-ink/40 disabled:opacity-60 sm:flex-none"
+                >
+                  {REPORT_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {REPORT_STATUS_LABEL[status]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={handleArchiveToggle}
+                disabled={isSavingStatus}
+                aria-busy={isSavingStatus}
+                className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-paper px-3 py-1.5 text-sm text-ink outline-none transition hover:bg-sheet-hover focus-visible:ring-2 focus-visible:ring-ink/40 disabled:opacity-60"
+              >
+                {report.status === 'archived' ? 'Desarquivar' : 'Arquivar'}
+              </button>
+              {isSavingStatus && (
+                <LoaderCircle className="size-4 animate-spin text-muted" aria-hidden="true" />
+              )}
+            </div>
+            {shouldSuggestArchive(report.status, sortedTasks) && (
+              <p className="text-xs text-muted">
+                Todas as tarefas foram fechadas; dá para arquivar.
+              </p>
             )}
-          </label>
+          </div>
         </div>
 
         {statusError && (

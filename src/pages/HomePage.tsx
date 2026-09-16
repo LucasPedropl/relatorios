@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
 import { FolderOpen, Inbox } from 'lucide-react';
-import { useProjects, useReports } from '@/features/reports/hooks';
+import { useProjects, useReports, useShowArchivedPreference } from '@/features/reports/hooks';
+import {
+  countArchivedReports,
+  selectReportsForListing,
+} from '@/features/reports/archivedVisibility';
 import { buildProjectCardModels } from '@/features/reports/projectStats';
-import { ErrorPanel, TimeAgo } from '@/components/Badges';
+import { ErrorPanel, FilterChip, TimeAgo } from '@/components/Badges';
 
 function ProjectGridSkeleton() {
   return (
@@ -22,9 +26,12 @@ function ProjectGridSkeleton() {
 export function HomePage() {
   const { projects, isLoading: projectsLoading, error: projectsError } = useProjects();
   const { reports, isLoading: reportsLoading, error, reload } = useReports();
+  const { showArchived, toggleShowArchived } = useShowArchivedPreference();
 
   const showSkeleton = projectsLoading || reportsLoading;
-  const cards = buildProjectCardModels(projects, reports);
+  const archivedCount = countArchivedReports(reports);
+  const visibleReports = selectReportsForListing(reports, showArchived);
+  const cards = buildProjectCardModels(projects, visibleReports);
 
   return (
     <div className="space-y-6">
@@ -35,6 +42,21 @@ export function HomePage() {
           Escolha um projeto para ver os relatórios. Auditorias e bugs publicados pelos agentes
           ficam separados por produto.
         </p>
+        {archivedCount > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filtrar relatórios arquivados">
+            <FilterChip
+              isActive={showArchived}
+              count={showArchived ? archivedCount : undefined}
+              onClick={toggleShowArchived}
+            >
+              {showArchived
+                ? 'Arquivados'
+                : `${archivedCount} ${
+                    archivedCount === 1 ? 'arquivado' : 'arquivados'
+                  } — mostrar`}
+            </FilterChip>
+          </div>
+        )}
       </div>
 
       {projectsError && (

@@ -15,6 +15,7 @@ import {
   updateTaskStatus,
   type ReportDetail,
 } from './services';
+import { getStoredShowArchived, setStoredShowArchived } from './archivedVisibility';
 
 function toMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -45,6 +46,20 @@ export function useProjects() {
   }, []);
 
   return { projects, isLoading, error };
+}
+
+export function useShowArchivedPreference() {
+  const [showArchived, setShowArchived] = useState(getStoredShowArchived);
+
+  const toggleShowArchived = useCallback(() => {
+    setShowArchived((previous) => {
+      const next = !previous;
+      setStoredShowArchived(next);
+      return next;
+    });
+  }, []);
+
+  return { showArchived, toggleShowArchived };
 }
 
 export function useReports(projectSlug?: string) {

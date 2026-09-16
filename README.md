@@ -35,6 +35,25 @@ cd apps/relatorios/dist
 npx vercel deploy --prod --yes --token=<VERCEL_TOKEN>
 ```
 
+> **Confira o vínculo do projeto antes de rodar.** Sem um `.vercel/project.json`
+> apontando para o projeto certo, o CLI **cria um projeto novo** com o nome da
+> pasta em vez de atualizar o existente — o deploy passa, mas
+> `relatorios-uaipdv.vercel.app` continua na versão velha e você não percebe.
+> Aconteceu em 16/09/2026. O vínculo correto é:
+>
+> ```json
+> { "projectId": "prj_vLjq5hg1F0ZbGN5qyobgpdZxsxFJ",
+>   "orgId": "team_9CDrQAAzMTuoV8tBmldkHamc",
+>   "projectName": "relatorios-uaipdv" }
+> ```
+>
+> Depois do deploy, confirme que o que subiu é o que você buildou — o alias
+> responder 200 não prova nada:
+>
+> ```bash
+> curl -s https://relatorios-uaipdv.vercel.app | grep -oE 'assets/index-[^"]+'
+> ```
+
 O token está no `env` do agent-os em `~/.cursor/mcp.json`. O projeto na Vercel é
 `lucaspedropls-projects/relatorios-uaipdv`. Use sempre o domínio curto
 (`relatorios-uaipdv.vercel.app`): a URL longa do deployment cai na Deployment
